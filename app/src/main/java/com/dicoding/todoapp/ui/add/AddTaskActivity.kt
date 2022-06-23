@@ -6,20 +6,33 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.dicoding.todoapp.R
+import com.dicoding.todoapp.data.Task
+import com.dicoding.todoapp.databinding.ActivityAddTaskBinding
+import com.dicoding.todoapp.ui.ViewModelFactory
+import com.dicoding.todoapp.ui.list.TaskViewModel
 import com.dicoding.todoapp.utils.DatePickerFragment
+import com.dicoding.todoapp.utils.FunctionLibrary
 import java.text.SimpleDateFormat
 import java.util.*
 
 class AddTaskActivity : AppCompatActivity(), DatePickerFragment.DialogDateListener {
     private var dueDateMillis: Long = System.currentTimeMillis()
+    private lateinit var taskViewModel: TaskViewModel
+
+    private var _binding : ActivityAddTaskBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_add_task)
+        _binding = ActivityAddTaskBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         supportActionBar?.title = getString(R.string.add_task)
 
+        val factory = ViewModelFactory.getInstance(this)
+        taskViewModel = ViewModelProvider(this, factory).get(TaskViewModel::class.java)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -31,6 +44,16 @@ class AddTaskActivity : AppCompatActivity(), DatePickerFragment.DialogDateListen
         return when (item.itemId) {
             R.id.action_save -> {
                 //TODO 12 : Create AddTaskViewModel and insert new task to database
+                val newTask = Task(
+                    0,
+                    binding.addEdTitle.text.toString(),
+                    binding.addEdDescription.text.toString(),
+                    dueDateMillis,
+                    false
+                )
+                val result = taskViewModel.insertTask(task = newTask)
+                FunctionLibrary.showToast(applicationContext, "New task has been added")
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)

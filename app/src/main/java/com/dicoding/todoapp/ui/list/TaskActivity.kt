@@ -11,6 +11,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dicoding.todoapp.R
 import com.dicoding.todoapp.data.Task
@@ -18,6 +19,7 @@ import com.dicoding.todoapp.setting.SettingsActivity
 import com.dicoding.todoapp.ui.ViewModelFactory
 import com.dicoding.todoapp.ui.add.AddTaskActivity
 import com.dicoding.todoapp.utils.Event
+import com.dicoding.todoapp.utils.FunctionLibrary
 import com.dicoding.todoapp.utils.TasksFilterType
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -38,7 +40,7 @@ class TaskActivity : AppCompatActivity() {
         }
 
         //TODO 6 : Initiate RecyclerView with LayoutManager
-
+        initRecyclerView()
         initAction()
 
         val factory = ViewModelFactory.getInstance(this)
@@ -47,10 +49,24 @@ class TaskActivity : AppCompatActivity() {
         taskViewModel.tasks.observe(this, Observer(this::showRecyclerView))
 
         //TODO 15 : Fixing bug : snackBar not show when task completed
+        taskViewModel.snackbarText.observe(this, Observer(this::showSnackBar) )
+    }
+
+    private fun initRecyclerView(){
+        recycler = findViewById(R.id.rv_task)
+        recycler.apply {
+            setHasFixedSize(true)
+            layoutManager = LinearLayoutManager(applicationContext)
+        }
     }
 
     private fun showRecyclerView(task: PagedList<Task>) {
         //TODO 7 : Submit pagedList to adapter and update database when onCheckChange
+        val taskAdapter = TaskAdapter { task, isChecked ->
+            taskViewModel.completeTask(task, isChecked)
+        }
+        taskAdapter.submitList(task)
+        recycler.adapter = taskAdapter
     }
 
     private fun showSnackBar(eventMessage: Event<Int>) {
@@ -121,6 +137,7 @@ class TaskActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val task = (viewHolder as TaskAdapter.TaskViewHolder).getTask
                 taskViewModel.deleteTask(task)
+                FunctionLibrary.showToast(applicationContext, "Task has been deleted")
             }
 
         })

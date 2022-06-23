@@ -7,6 +7,7 @@ import com.dicoding.todoapp.data.Task
 import com.dicoding.todoapp.data.TaskRepository
 import com.dicoding.todoapp.utils.Event
 import com.dicoding.todoapp.utils.TasksFilterType
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class TaskViewModel(private val taskRepository: TaskRepository) : ViewModel() {
@@ -38,8 +39,24 @@ class TaskViewModel(private val taskRepository: TaskRepository) : ViewModel() {
     }
 
     fun deleteTask(task: Task) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             taskRepository.deleteTask(task)
         }
+    }
+
+    fun getTaskById(taskId: Int) : LiveData<Task>{
+        return taskRepository.getTaskById(taskId = taskId)
+    }
+
+    fun getNearestActiveTask() : Task{
+        return taskRepository.getNearestActiveTask()
+    }
+
+    fun insertTask(task: Task) : Long{
+        var returnValue : Long = -1
+        viewModelScope.launch(Dispatchers.IO) {
+            returnValue = taskRepository.insertTask(task)
+        }
+        return returnValue
     }
 }

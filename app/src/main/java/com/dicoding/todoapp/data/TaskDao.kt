@@ -4,22 +4,22 @@ import androidx.lifecycle.LiveData
 import androidx.paging.DataSource
 import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.dicoding.todoapp.utils.TASK_TABLE_NAME
 
-
-//Define data access object (DAO)
+//TODO 2 : Define data access object (DAO)
 @Dao
 interface TaskDao {
-    @Query("SELECT * FROM task ORDER BY id ASC")
-    fun getTasks(): LiveData<List<Task>>
-    //fun getTasks(query: SupportSQLiteQuery): DataSource.Factory<Int, Task>
 
-    @Query("SELECT * FROM task WHERE id=:taskId")
+    @RawQuery(observedEntities = [Task::class])
+    fun getTasks(query: SupportSQLiteQuery): DataSource.Factory<Int, Task>
+
+    @Query("select * from $TASK_TABLE_NAME where id = :taskId")
     fun getTaskById(taskId: Int): LiveData<Task>
 
-    @Query("SELECT * FROM task ORDER BY dueDateMillis DESC")
+    @Query("select * from $TASK_TABLE_NAME where completed = 0 order by dueDateMillis ASC limit 1")
     fun getNearestActiveTask(): Task
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert
     suspend fun insertTask(task: Task): Long
 
     @Insert
@@ -28,7 +28,7 @@ interface TaskDao {
     @Delete
     suspend fun deleteTask(task: Task)
 
-    @Update
+    @Query("update $TASK_TABLE_NAME set completed = :completed where id = :taskId")
     suspend fun updateCompleted(taskId: Int, completed: Boolean)
-    
+
 }
