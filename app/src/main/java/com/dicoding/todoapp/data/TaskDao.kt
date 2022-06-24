@@ -22,7 +22,7 @@ interface TaskDao {
     @Insert
     suspend fun insertTask(task: Task): Long
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(vararg tasks: Task)
 
     @Delete
